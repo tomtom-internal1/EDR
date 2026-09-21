@@ -55,6 +55,13 @@ Added longitudinal comparison of driver identity, signature, PE mitigations, blo
 ### Milestone 12 — Driver source security linting
 Added heuristic static checks for IOCTL surfaces, user-buffer handling, memory mapping, unsafe string/copy routines, named devices, and debug output.
 
+## EDDRR training
+
+- [Training lab](lab/eddrr/README.md)
+- [Ten-finding test plan](docs/eddrr-test-plan.md)
+- [Intentional defect catalog](lab/eddrr/KNOWN_ISSUES.md)
+- [Engineer test report template](lab/eddrr/TEST_REPORT_TEMPLATE.md)
+
 ## Documentation
 
 - [KDASA overview](docs/kdasa/README.md)
