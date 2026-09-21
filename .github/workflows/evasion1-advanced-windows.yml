@@ -1,0 +1,46 @@
+name: evasion1-advanced-windows
+
+on:
+  push:
+    paths:
+      - "evasion1/advanced/**"
+      - "evasion1/build.ps1"
+      - "evasion1/p06_fixture.c"
+      - ".github/workflows/evasion1-advanced-windows.yml"
+  pull_request:
+    paths:
+      - "evasion1/advanced/**"
+      - "evasion1/build.ps1"
+      - "evasion1/p06_fixture.c"
+      - ".github/workflows/evasion1-advanced-windows.yml"
+  workflow_dispatch:
+
+jobs:
+  advanced:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build base Evasion1 fixture
+        shell: pwsh
+        run: |
+          Set-Location evasion1
+          .\build.ps1
+
+      - name: Build advanced tier
+        shell: pwsh
+        run: |
+          Set-Location evasion1\advanced
+          .\build.ps1
+
+      - name: Run advanced tier
+        shell: pwsh
+        run: |
+          Set-Location evasion1\advanced
+          .\run-all.ps1
+
+      - name: Upload telemetry
+        uses: actions/upload-artifact@v4
+        with:
+          name: evasion1-advanced-jsonl
+          path: evasion1/advanced/artifacts/*.jsonl
