@@ -112,41 +112,6 @@ static unsigned long own_v6_rows(DWORD pid, DWORD local_port)
     return matches;
 }
 
-static int exercise_v4(DWORD pid, unsigned short port)
-{
-    SOCKET client = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (client == INVALID_SOCKET) return 0;
-
-    struct sockaddr_in dest;
-    ZeroMemory(&dest, sizeof(dest));
-    dest.sin_family = AF_INET;
-    dest.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-    dest.sin_port = htons(port);
-
-    if (connect(client, (struct sockaddr *)&dest, sizeof(dest)) == SOCKET_ERROR) {
-        closesocket(client);
-        return 0;
-    }
-
-    SOCKET server = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (server != INVALID_SOCKET) closesocket(server);
-
-    const char msg[] = "EDDRR-A09-V4";
-    send(client, msg, (int)sizeof(msg), 0);
-
-    char d[384];
-    snprintf(d, sizeof(d),
-             "{\"family\":\"AF_INET\",\"destination\":\"127.0.0.1\","
-             "\"destination_port\":%u,\"client_pid\":%lu,"
-             "\"listener_pid\":%lu,\"local_only\":true}",
-             (unsigned)port,(unsigned long)pid,(unsigned long)pid);
-    adv_emit("A09_SOCKET_GROUNDTRUTH", 2, "IPv4Connection",
-             "SOCKET_GROUNDTRUTH", d);
-
-    closesocket(client);
-    return 1;
-}
-
 int main(void)
 {
     const char *id = "A09_SOCKET_GROUNDTRUTH";
