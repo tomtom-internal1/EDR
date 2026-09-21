@@ -5,7 +5,7 @@
 
 static void poc_print_header(const char *id, const char *technique)
 {
-    printf("{\"event_type\":\"RemoteSimulation\",\"poc_id\":\"%s\",\"technique\":\"%s\",", id, technique);
+    printf("{\"event_type\":\"RemoteSimulation\",\"poc_id\":\"%s\",\"technique\":\"%s\",\"timestamp\":1.0,", id, technique);
 }
 
 static void poc_print_footer(void)
