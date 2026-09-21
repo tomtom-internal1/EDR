@@ -4,6 +4,8 @@ A defensive security research repository focused on Windows endpoint telemetry, 
 
 ## Research modules
 
+- **EDDRR Training EDR** — intentionally flawed local endpoint-detection simulator with 10 engineered false-negative cases and reproducible PoCs.
+
 - **KDASA — Kernel Driver Attack Surface Analyzer**
   - Read-only kernel telemetry
   - Process/thread/image notifications
