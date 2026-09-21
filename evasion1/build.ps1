@@ -35,3 +35,5 @@ Invoke-Cl (Join-Path $Root "p09_local_ipc.c") (Join-Path $Out "p09_local_ipc.exe
 Invoke-Cl (Join-Path $Root "p10_kernel_sensor_integrity.c") (Join-Path $Out "p10_kernel_sensor_integrity.exe")
 
 Write-Host "[build] complete: $Out"
+
+Invoke-Cl (Join-Path $Root "p11_amsi_validation.c") (Join-Path $Out "p11_amsi_validation.exe")
