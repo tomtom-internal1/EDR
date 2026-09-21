@@ -1,0 +1,4 @@
+{"Type":"ProcessStart","Timestamp":"2026-09-21T05:30:00Z","Pid":1200,"Tid":1300,"ProcessName":"example","Details":{"parentPid":800,"imageFileName":"example.exe","commandLine":"example.exe"}}
+{"Type":"ImageLoad","Timestamp":"2026-09-21T05:30:00Z","Pid":1200,"Tid":1300,"ProcessName":"example","Details":{"fileName":"C:\\Windows\\System32\\example.dll","baseAddress":"0x10000000","imageSize":40960,"systemModeImage":false}}
+{"Type":"ThreadStart","Timestamp":"2026-09-21T05:30:00Z","Pid":1200,"Tid":1301,"ProcessName":"example","Details":{}}
+{"Type":"ProcessStop","Timestamp":"2026-09-21T05:30:02Z","Pid":1200,"Tid":1301,"ProcessName":"example","Details":{"parentPid":800,"exitStatus":0,"imageFileName":"example.exe","commandLine":"example.exe"}}
