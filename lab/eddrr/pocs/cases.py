@@ -37,7 +37,7 @@ def c5():
     return VulnerableEDR(), [Event(event_type='Behavior', timestamp=5.0, pid=104, parent_pid=5000, metadata={'requires_trusted_parent':True,'reported_parent_image':r'C:\Windows\System32\svchost.exe','actual_parent_image':r'C:\Temp\untrusted-parent.exe','known_bad_behavior':True})]
 
 def c6():
-    return VulnerableEDR(), [Event(event_type='ProcessStart', timestamp=6.0, pid=105, image=r'C:\Windows\System32\powershell.exe', command_line='PowerShell   -ENC   TEST')]
+    return VulnerableEDR(), [Event(event_type='ProcessStart', timestamp=6.0, pid=105, image=r'C:\Windows\System32\notepad.exe', command_line='PowerShell   -ENC   TEST')]
 
 def c7():
     e=VulnerableEDR(); e.events_lost=1
