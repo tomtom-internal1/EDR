@@ -1,0 +1,23 @@
+name: EDDRR remote-technique lab
+
+on:
+  push:
+    paths:
+      - 'lab/eddrr/**'
+  pull_request:
+    paths:
+      - 'lab/eddrr/**'
+
+jobs:
+  remote-pocs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Compile
+        run: python -m compileall -q lab/eddrr
+      - name: Run remote-technique PoCs
+        working-directory: lab/eddrr/pocs
+        run: python remote_poc_suite.py
