@@ -1,14 +1,13 @@
 /*
  * A07 deterministic telemetry simulator.
  *
- * This file deliberately does not call AMSI, modify process memory,
- * or interact with a security product. It exists as a positive/negative
+ * Deliberately does not call AMSI, modify process memory, or interact
+ * with security products. It is a deterministic positive/negative
  * control for EDR correlation and regression testing.
  */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
 #include <time.h>
 
 #define DEFAULT_REPEATS 3U
@@ -19,8 +18,10 @@ static unsigned long long now_ms(void)
     return (unsigned long long)time(NULL) * 1000ULL;
 }
 
-static void emit(unsigned long seq, const char *event_type,
-                 const char *technique, const char *details)
+static void emit(unsigned long seq,
+                 const char *event_type,
+                 const char *technique,
+                 const char *details)
 {
     printf("{\"poc_id\":\"A07_AMSI_MULTIPATH\","
            "\"sequence\":%lu,\"timestamp_ms\":%llu,"
@@ -46,6 +47,33 @@ static int is_mode(const char *mode, const char *expected)
     return strcmp(mode, expected) == 0;
 }
 
+static void emit_scan(unsigned long seq,
+                      unsigned int round,
+                      const char *method,
+                      const char *session,
+                      const char *result,
+                      const char *hr,
+                      int malware)
+{
+    char details[768];
+
+    snprintf(details, sizeof(details),
+             "{\"method\":\"%s\",\"session\":\"%s\","
+             "\"input\":\"synthetic_benign\","
+             "\"hresult\":\"%s\",\"hresult_success\":%s,"
+             "\"result_name\":\"%s\",\"result_is_malware\":%s,"
+             "\"simulation\":true,\"round\":%u}",
+             method,
+             session,
+             hr,
+             strcmp(hr, "0x00000000") == 0 ? "true" : "false",
+             result,
+             malware ? "true" : "false",
+             round);
+
+    emit(seq, "AmsiScan", "AMSI_MULTIPATH_VALIDATION", details);
+}
+
 int main(int argc, char **argv)
 {
     const char *scenario = "stable";
@@ -61,8 +89,8 @@ int main(int argc, char **argv)
                 return 2;
             }
         } else if (strcmp(argv[i], "--help") == 0) {
-            printf("A07 simulator scenarios: stable, result-flip, "
-                   "hresult-failure, cross-path-drift\n");
+            puts("A07 simulator scenarios: stable, result-flip, "
+                 "hresult-failure, cross-path-drift");
             return 0;
         } else {
             fprintf(stderr, "unknown argument: %s\n", argv[i]);
@@ -80,71 +108,76 @@ int main(int argc, char **argv)
 
     emit(1, "SimulationContext", "AMSI_MULTIPATH_VALIDATION",
          "{\"simulation\":true,\"input\":\"synthetic_benign\","
-         "\"source\":\"A07_deterministic_control\"}");
+         "\"source\":\"A07_deterministic_control\","
+         "\"matrix\":\"string_session,string_no_session,"
+         "buffer_session,buffer_no_session\"}");
 
     unsigned int result_changes = 0;
     unsigned int hresult_failures = 0;
 
     for (unsigned int round = 1; round <= repeats; ++round) {
-        const char *buffer_result = "CLEAN";
-        const char *string_result = "CLEAN";
-        const char *buffer_hr = "0x00000000";
-        const char *string_hr = "0x00000000";
+        const char *ss_result = "CLEAN";
+        const char *sn_result = "CLEAN";
+        const char *bs_result = "CLEAN";
+        const char *bn_result = "CLEAN";
+
+        const char *ss_hr = "0x00000000";
+        const char *sn_hr = "0x00000000";
+        const char *bs_hr = "0x00000000";
+        const char *bn_hr = "0x00000000";
 
         if (is_mode(scenario, "result-flip") && round > 1) {
-            buffer_result = "DETECTED";
+            bs_result = "DETECTED";
             result_changes++;
         }
 
         if (is_mode(scenario, "hresult-failure") && round == 2) {
-            buffer_hr = "0x80004005";
+            bn_hr = "0x80004005";
             hresult_failures++;
         }
 
         if (is_mode(scenario, "cross-path-drift") && round > 1) {
-            string_result = "NOT_DETECTED";
+            sn_result = "NOT_DETECTED";
             result_changes++;
         }
 
-        char details[768];
+        emit_scan(10 + ((round - 1) * 4), round,
+                  "AmsiScanString", "session",
+                  ss_result, ss_hr, 0);
 
-        snprintf(details, sizeof(details),
-                 "{\"method\":\"AmsiScanString\",\"session\":\"session\","
-                 "\"input\":\"synthetic_benign\",\"hresult\":\"%s\","
-                 "\"hresult_success\":%s,\"result_name\":\"%s\","
-                 "\"result_is_malware\":false,\"simulation\":true,"
-                 "\"round\":%u}",
-                 string_hr,
-                 strcmp(string_hr, "0x00000000") == 0 ? "true" : "false",
-                 string_result, round);
+        emit_scan(11 + ((round - 1) * 4), round,
+                  "AmsiScanString", "no_session",
+                  sn_result, sn_hr, 0);
 
-        emit(10 + ((round - 1) * 2), "AmsiScan",
-             "AMSI_MULTIPATH_VALIDATION", details);
+        emit_scan(12 + ((round - 1) * 4), round,
+                  "AmsiScanBuffer", "session",
+                  bs_result, bs_hr,
+                  strcmp(bs_result, "DETECTED") == 0);
 
-        snprintf(details, sizeof(details),
-                 "{\"method\":\"AmsiScanBuffer\",\"session\":\"session\","
-                 "\"input\":\"synthetic_benign\",\"hresult\":\"%s\","
-                 "\"hresult_success\":%s,\"result_name\":\"%s\","
-                 "\"result_is_malware\":%s,\"simulation\":true,"
-                 "\"round\":%u}",
-                 buffer_hr,
-                 strcmp(buffer_hr, "0x00000000") == 0 ? "true" : "false",
-                 buffer_result,
-                 strcmp(buffer_result, "DETECTED") == 0 ? "true" : "false",
-                 round);
-
-        emit(11 + ((round - 1) * 2), "AmsiScan",
-             "AMSI_MULTIPATH_VALIDATION", details);
+        emit_scan(13 + ((round - 1) * 4), round,
+                  "AmsiScanBuffer", "no_session",
+                  bn_result, bn_hr, 0);
     }
 
+    emit(100, "AmsiNotifyOperation",
+         "AMSI_MULTIPATH_VALIDATION",
+         "{\"simulation\":true,\"notify_success\":true}");
+
     {
-        char details[512];
+        char details[640];
+
         snprintf(details, sizeof(details),
                  "{\"simulation\":true,\"scenario\":\"%s\","
                  "\"repeat_count\":%u,\"path_result_changes\":%u,"
-                 "\"hresult_failures\":%u}",
-                 scenario, repeats, result_changes, hresult_failures);
-        emit(100, "CrossPathCorrelation",
+                 "\"hresult_failures\":%u,"
+                 "\"matrix\":\"string_session,string_no_session,"
+                 "buffer_session,buffer_no_session\"}",
+                 scenario,
+                 repeats,
+                 result_changes,
+                 hresult_failures);
+
+        emit(101, "CrossPathCorrelation",
              "AMSI_MULTIPATH_VALIDATION", details);
     }
 
@@ -154,13 +187,15 @@ int main(int argc, char **argv)
                 ? "STABLE" : "ANOMALY";
 
         char details[640];
+
         snprintf(details, sizeof(details),
                  "{\"simulation\":true,\"status\":\"%s\","
                  "\"scenario\":\"%s\","
-                 "\"oracle\":\"hresult_failures_or_result_changes\"}",
+                 "\"oracle\":\"hresult_failures_or_result_changes\","
+                 "\"native_amsi_not_invoked\":true}",
                  status, scenario);
 
-        emit(101, "DetectionOracle",
+        emit(102, "DetectionOracle",
              "AMSI_MULTIPATH_VALIDATION", details);
     }
 
