@@ -1,0 +1,33 @@
+name: evasion1-windows
+
+on:
+  push:
+    paths:
+      - "evasion1/**"
+      - ".github/workflows/evasion1-windows.yml"
+  pull_request:
+    paths:
+      - "evasion1/**"
+      - ".github/workflows/evasion1-windows.yml"
+  workflow_dispatch:
+
+jobs:
+  build-and-run:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Evasion1
+        shell: pwsh
+        run: |
+          Set-Location evasion1
+          .\build.ps1
+      - name: Run Evasion1
+        shell: pwsh
+        run: |
+          Set-Location evasion1
+          .\run-all.ps1
+      - name: Upload JSONL
+        uses: actions/upload-artifact@v4
+        with:
+          name: evasion1-jsonl
+          path: evasion1/artifacts/*.jsonl
