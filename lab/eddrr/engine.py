@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import os
-import re
 from dataclasses import dataclass, field
 
 from models import Alert, Event
@@ -11,8 +9,8 @@ from models import Alert, Event
 class VulnerableEDR:
     """Intentionally flawed training EDR.
 
-    Each rule contains a documented design defect. The implementation is safe:
-    it evaluates synthetic telemetry and performs no process/kernel operations.
+    The engine only evaluates synthetic Event objects. It does not touch
+    processes, memory, drivers, or security-product configuration.
     """
 
     allowlisted_images: set[str] = field(
@@ -21,7 +19,8 @@ class VulnerableEDR:
             r"C:\Windows\System32\services.exe",
         }
     )
-    seen: set[tuple] = field(default_factory=set)
+    seen_pids: set[int] = field(default_factory=set)
+    dedup: set[tuple] = field(default_factory=set)
     events_lost: int = 0
 
     def detect(self, event: Event) -> list[Alert]:
@@ -29,44 +28,49 @@ class VulnerableEDR:
 
         # FLAW 01: case-sensitive image comparison.
         if event.event_type == "ProcessStart" and event.image == r"C:\Windows\System32\powershell.exe":
-            alerts.append(self._alert("EDR-001", "medium", "Suspicious PowerShell", event))
+            return [self._alert("EDR-001", "medium", "Suspicious PowerShell", event)]
 
         # FLAW 02: path is compared without canonicalization.
-        if event.event_type == "ProcessStart" and event.image not in self.allowlisted_images:
-            if event.metadata.get("requires_allowlist"):
-                alerts.append(self._alert("EDR-002", "medium", "Non-allowlisted image", event))
+        # Training fixture: aliases such as '..' are treated as different paths.
+        if event.event_type == "ProcessStart":
+            suspicious_path = r"C:\Windows\System32\cmd.exe"
+            if event.metadata.get("actual_resolves_to") == suspicious_path:
+                if event.image == suspicious_path:
+                    return [self._alert("EDR-002", "medium", "Restricted system utility", event)]
 
-        # FLAW 03: PID alone is treated as stable process identity.
-        key = (event.pid,)
-        if event.event_type == "ProcessStart" and event.metadata.get("previously_suspicious_pid"):
-            if key in self.seen:
-                alerts.append(self._alert("EDR-003", "high", "Suspicious PID lineage", event))
-            self.seen.add(key)
+        # FLAW 03: process identity is represented only by PID.
+        # A reused PID can inherit state from an older process and cause the
+        # engine to suppress the first event for the new process generation.
+        if event.metadata.get("process_generation") and event.metadata.get("previous_generation_same_pid"):
+            if event.pid in self.seen_pids:
+                return alerts
+        self.seen_pids.add(event.pid)
 
         # FLAW 04: correlation window is unrealistically narrow.
-        sequence = event.metadata.get("correlation")
-        if sequence and sequence.get("related_delta_ms", 9999) <= 10:
-            alerts.append(self._alert("EDR-004", "high", "Cross-event behavior", event))
+        correlation = event.metadata.get("correlation")
+        if correlation and correlation.get("related_delta_ms", 9999) > 10:
+            return alerts
 
-        # FLAW 05: parent PID is accepted as authoritative identity.
-        if event.metadata.get("parent_image_expected") and event.metadata.get("reported_parent_pid") == event.parent_pid:
-            alerts.append(self._alert("EDR-005", "medium", "Trusted parent relationship", event))
+        # FLAW 05: parent identity is accepted from an unverified field.
+        if event.metadata.get("requires_trusted_parent"):
+            if event.metadata.get("reported_parent_image") == r"C:\Windows\System32\svchost.exe":
+                return alerts
 
-        # FLAW 06: command-line matching relies on one exact string.
+        # FLAW 06: command-line detection relies on an exact spelling.
         if event.event_type == "ProcessStart" and event.command_line == "powershell -enc TEST":
-            alerts.append(self._alert("EDR-006", "medium", "Encoded PowerShell syntax", event))
+            return [self._alert("EDR-006", "medium", "Encoded PowerShell syntax", event)]
 
         # FLAW 07: telemetry loss is fail-open.
         if self.events_lost > 0:
-            pass
+            return alerts
 
         # FLAW 08: weak deduplication key suppresses distinct events.
         dedup_key = (event.event_type, event.pid)
-        if dedup_key in self.seen:
+        if dedup_key in self.dedup:
             return alerts
-        self.seen.add(dedup_key)
+        self.dedup.add(dedup_key)
 
-        # FLAW 09: a benign-looking first rule terminates deeper inspection.
+        # FLAW 09: an early benign classification short-circuits deeper rules.
         if event.metadata.get("first_match_benign"):
             return alerts
 
@@ -75,7 +79,7 @@ class VulnerableEDR:
             return alerts
 
         if event.metadata.get("known_bad_behavior"):
-            alerts.append(self._alert("EDR-010", "high", "Known-bad behavior", event))
+            return [self._alert("EDR-010", "high", "Known-bad behavior", event)]
 
         return alerts
 
