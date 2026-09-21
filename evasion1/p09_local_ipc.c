@@ -146,14 +146,14 @@ int main(int argc, char **argv)
     if (RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\EDDRR\\Evasion1\\P09",
                       0, KEY_WRITE, &cleanup) == ERROR_SUCCESS) {
         RegDeleteValueW(cleanup, L"Message");
-        RegCloseHandle(cleanup);
+        RegCloseKey(cleanup);
     }
 
     HKEY parent = NULL;
     if (RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\EDDRR\\Evasion1",
                       0, KEY_WRITE, &parent) == ERROR_SUCCESS) {
         RegDeleteKeyW(parent, L"P09");
-        RegCloseHandle(parent);
+        RegCloseKey(parent);
     }
 
     snprintf(reg_detail, sizeof(reg_detail),
