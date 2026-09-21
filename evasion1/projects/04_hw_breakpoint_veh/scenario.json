@@ -1,0 +1,22 @@
+{
+  "id": "A04",
+  "title": "VEH + hardware-breakpoint self-instrumentation",
+  "standalone": true,
+  "source": "main.c",
+  "platform": "x64 recommended; debug-register layout is architecture-sensitive",
+  "linked_libraries": [],
+  "compile": [
+    "build.ps1",
+    "CMakeLists.txt"
+  ],
+  "telemetry": "evasion1-jsonl-v2",
+  "safety": {
+    "local_only": true,
+    "payload_execution": false,
+    "remote_process_access": false,
+    "security_product_tampering": false,
+    "kernel_memory_modification": false,
+    "credential_access": false
+  },
+  "detection_objective": "correlate callback execution with registration, identity and provenance"
+}
