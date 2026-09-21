@@ -126,7 +126,7 @@ def parse_pe(path: Path) -> dict:
 
     return {
         "path": str(path),
-        "sha256": __import__("hashlib").sha256(data).hexdigest(),
+        "sha256": hashlib.sha256(data).hexdigest(),
         "machine": MACHINE_NAMES.get(machine, f"unknown(0x{machine:04X})"),
         "peKind": pe_kind,
         "sectionCount": section_count,
