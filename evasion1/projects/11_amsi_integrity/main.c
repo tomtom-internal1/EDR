@@ -129,12 +129,12 @@ int main(void)
              live_hex, disk_hex,
              memcmp(live_bytes, disk_bytes, compare_len) == 0 ? "true" : "false");
 
-    adv_emit(id, 1, "AmsiCodeIntegrity", "AMSI_CODE_INTEGRITY", d);
+    adv_emit(id, 1, "AmsiCodeIntegrity", "AMSI_CODE_INTEGRITY", d);\n\n    snprintf(d, sizeof(d),\n             "{\\"live_page_base\\":\\"%p\\",\\"live_region_state\\":%lu,\\"live_page_protect\\":%lu,"\n             "\\"page_is_writable\\":%s,\"page_is_executable\\":%s}",\n             live_mbi.BaseAddress, (unsigned long)live_mbi.State,\n             (unsigned long)live_mbi.Protect,\n             (live_mbi.Protect & (PAGE_READWRITE | PAGE_WRITECOPY | PAGE_EXECUTE_READWRITE | PAGE_EXECUTE_WRITECOPY)) ? "true" : "false",\n             (live_mbi.Protect & (PAGE_EXECUTE | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE | PAGE_EXECUTE_WRITECOPY)) ? "true" : "false");\n    adv_emit(id, 2, "AmsiCodePageState", "AMSI_CODE_INTEGRITY", d);
 
     BOOL signature_bytes_same =
         memcmp(live_bytes, disk_bytes, compare_len) == 0;
 
-    adv_emit(id, 2, "DetectionOracle", "AMSI_CODE_INTEGRITY",
+    adv_emit(id, 3, "DetectionOracle", "AMSI_CODE_INTEGRITY",
              signature_bytes_same ?
              "{\"state\":\"LIVE_BYTES_MATCH_DISK_IMAGE\","
              "\"interpretation\":\"no_code_difference_detected\","
