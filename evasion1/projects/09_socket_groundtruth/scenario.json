@@ -1,0 +1,25 @@
+{
+  "id": "A09",
+  "title": "IPv4/IPv6 socket PID ground truth",
+  "standalone": true,
+  "source": "main.c",
+  "platform": "x64/x86",
+  "linked_libraries": [
+    "Ws2_32.lib",
+    "Iphlpapi.lib"
+  ],
+  "compile": [
+    "build.ps1",
+    "CMakeLists.txt"
+  ],
+  "telemetry": "evasion1-jsonl-v2",
+  "safety": {
+    "local_only": true,
+    "payload_execution": false,
+    "remote_process_access": false,
+    "security_product_tampering": false,
+    "kernel_memory_modification": false,
+    "credential_access": false
+  },
+  "detection_objective": "reconcile endpoint ownership and lifecycle across independent sources"
+}
