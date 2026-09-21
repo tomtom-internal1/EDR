@@ -115,6 +115,7 @@ def r10():
         target_host="WEB-01",
         protocol="HTTP",
         destination_port=443,
+        destination_ip="172.22.23.53",
         metadata={"user_agent": "Mozilla/5.0", "periodic": True, "small_response": True},
     )]
 
