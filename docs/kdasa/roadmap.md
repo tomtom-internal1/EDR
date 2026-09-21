@@ -15,6 +15,8 @@ Completed:
 - Advisory correlation with provenance
 - Vulnerable-driver blocklist hash comparison
 - Unified driver assessment bundle
+- Before/after assessment comparison
+- Driver source security linting
 - Windows/.NET and Python CI for analysis components
 
 Planned:
@@ -23,8 +25,8 @@ Planned:
 - Detailed Authenticode chain reporting
 - NVD/CVE normalization with CPE candidate matching
 - Multi-run trend analysis
-- Better event ordering and loss diagnostics
-- HTML report sections driven by the unified assessment bundle
+- Better event ordering and collection-loss diagnostics
+- HTML reports driven by the unified assessment bundle
 - GUI investigation timeline
 - Controlled telemetry-integrity experiments
-- Driver security linting using documented best practices
+- Driver security linting using additional Microsoft guidance and CodeQL integration
