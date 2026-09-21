@@ -38,6 +38,15 @@ Added an offline correlator that matches events by identity plus timestamp toler
 ### Milestone 7 — Evidence store
 Added a local SQLite backend and query tool for retaining normalized events and original JSON payloads across repeated lab runs.
 
+### Milestone 8 — Advisory correlation
+Added provenance-aware exact hash, filename/version, and vendor/product/version advisory matching.
+
+### Milestone 9 — Vulnerable-driver blocklist evidence
+Added a local XML blocklist SHA-256 matcher that clearly distinguishes an exact snapshot match from absence of evidence.
+
+### Milestone 10 — Unified assessment
+Added a JSON assessment bundle that combines inventory, PE, advisory, blocklist, and scoring artifacts.
+
 ## Documentation
 
 - [KDASA overview](docs/kdasa/README.md)
