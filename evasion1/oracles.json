@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0",
+  "pocs": {
+    "P01_SYSCALL_VISIBILITY": {
+      "signals": ["ApiResolution","UserApiOperation","NtdllExportOperation"],
+      "correlation_window_ms": 5000,
+      "expected": "semantic memory-protection activity remains observable across API layers",
+      "negative_control": "direct_syscall_executed must remain false"
+    },
+    "P02_PARENT_CONTEXT": {
+      "signals": ["ProcessCreateIntent","LineageCrossCheck","ProcessLifecycle"],
+      "expected": "parent identity is reconciled using independent sources",
+      "negative_control": "normal CreateProcess lineage is benign"
+    },
+    "P03_APC_EXECUTION": {
+      "signals": ["ThreadStart","ApcQueue","ApcCallback","CorrelationResult"],
+      "expected": "APC queueing and callback execution are correlated to one TID",
+      "negative_control": "callback payload is benign and self-targeted"
+    },
+    "P04_TIMER_CALLBACK": {
+      "signals": ["TimerRegistration","TimerCallback","TimerLifecycleEnd"],
+      "expected": "deferred callback is correlated with registration and callback thread",
+      "negative_control": "no executable-memory payload is used"
+    },
+    "P05_MEMORY_TRANSITION": {
+      "signals": ["SectionCreate","SectionWrite","ProtectionTransition","SectionRelease"],
+      "expected": "writable section -> executable protection transition is reconstructed as a lifecycle",
+      "negative_control": "no code is executed from the region"
+    },
+    "P06_DLL_CONTEXT": {
+      "signals": ["DllSearchPolicy","ImageLoadIntent","ImageLoad","ExportResolution","ImageUnload"],
+      "expected": "loaded module provenance is checked against an explicit search policy and resolved path",
+      "negative_control": "suite-local signed/provenance fixture is expected benign"
+    },
+    "P07_ETW_DEGRADATION": {
+      "signals": ["ProviderRegistered","EtwWrite"],
+      "expected": "provider sequence discontinuity is treated as telemetry-integrity evidence",
+      "negative_control": "provider remains enabled; no session/provider disabling is performed"
+    },
+    "P08_IPV6_TELEMETRY": {
+      "signals": ["Listen","Connection","ConnectionClose"],
+      "expected": "AF_INET6 is normalized into the same endpoint model as AF_INET",
+      "negative_control": "destination is ::1 loopback only"
+    },
+    "P09_LOCAL_IPC": {
+      "signals": ["NamedPipeCreate","ChildProcessCreate","PipeTransfer","RegistryIpc","IpcLifecycleEnd"],
+      "expected": "cross-process local IPC is correlated without requiring network telemetry",
+      "negative_control": "named pipe and registry path are local and cleaned up"
+    },
+    "P10_KERNEL_SENSOR_INTEGRITY": {
+      "signals": ["GroundTruthBaseline","GroundTruthThreadChange","SensorMirrorObservation","GroundTruthRecovery"],
+      "expected": "missing source-specific telemetry is detected when independent ground truth says the event occurred",
+      "negative_control": "kernel callback tables and drivers are not modified"
+    }
+  }
+}
