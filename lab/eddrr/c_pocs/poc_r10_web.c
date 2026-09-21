@@ -4,7 +4,7 @@
 int main(void)
 {
     poc_print_header("R10", "WEB_C2_SIM");
-    printf("\"source_host\":\"WORKSTATION-01\",\"target_host\":\"WEB-01\",");
+    printf("\"source_host\":\"WORKSTATION-01\",\"target_host\":\"WEB-01\",\"destination_ip\":\"172.22.23.53\",");
     printf("\"protocol\":\"HTTP\",\"destination_port\":443,");
     printf("\"metadata\":{\"user_agent\":\"Mozilla/5.0\",\"periodic\":true,\"small_response\":true},");
     poc_print_footer();
