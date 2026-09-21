@@ -15,7 +15,8 @@ $names = @(
  "p07_amsi_multipath",
  "p08_sec_image_mapping",
  "p09_socket_groundtruth",
- "p10_wait_callback"
+ "p10_wait_callback",
+ "p11_amsi_integrity"
 )
 
 foreach ($name in $names) {
