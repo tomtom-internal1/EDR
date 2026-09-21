@@ -5,16 +5,33 @@
   "source": "main.c",
   "platform": "Windows 10+",
   "linked_libraries": [
-    "amsi.lib"
-  ],
-  "compile": [
-    "build.ps1",
-    "CMakeLists.txt"
+    "amsi.lib",
+    "bcrypt.lib",
+    "version.lib"
   ],
   "runtime_inputs": {
-    "external_file": "optional operator-supplied local validation input; not stored in repository"
+    "external_file": "optional local validation input; not stored in repository",
+    "repeat_count": "1..20"
   },
   "telemetry": "evasion1-jsonl-v2",
+  "measurements": [
+    "amsi_module_version",
+    "input_sha256",
+    "AmsiScanString_session",
+    "AmsiScanString_no_session",
+    "AmsiScanBuffer_session",
+    "AmsiScanBuffer_no_session",
+    "HRESULT",
+    "AMSI_RESULT",
+    "AmsiResultIsMalware",
+    "scan_latency_us",
+    "repeat_stability",
+    "AmsiNotifyOperation"
+  ],
+  "detection_oracle": {
+    "stable": "all scan HRESULTs succeeded and no measured path changed result across repetitions",
+    "anomaly": "one or more HRESULT failures or repeated-result changes"
+  },
   "safety": {
     "local_only": true,
     "payload_execution": false,
@@ -24,5 +41,5 @@
     "credential_access": false,
     "embedded_amsi_test_signature": false
   },
-  "detection_objective": "correlate behavioral and provider-integrity signals without assuming a specific bypass implementation"
+  "detection_objective": "measure AMSI path consistency and generate high-quality telemetry for correlation and anomaly investigation"
 }
