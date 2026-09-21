@@ -1,0 +1,25 @@
+name: KDASA collector
+
+on:
+  push:
+    paths:
+      - 'tools/KdasaCollector/**'
+  pull_request:
+    paths:
+      - 'tools/KdasaCollector/**'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: tools/KdasaCollector
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Restore
+        run: dotnet restore
+      - name: Build
+        run: dotnet build -c Release --no-restore
