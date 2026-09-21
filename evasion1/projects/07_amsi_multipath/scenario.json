@@ -11,6 +11,9 @@
     "build.ps1",
     "CMakeLists.txt"
   ],
+  "runtime_inputs": {
+    "external_file": "optional operator-supplied local validation input; not stored in repository"
+  },
   "telemetry": "evasion1-jsonl-v2",
   "safety": {
     "local_only": true,
@@ -18,7 +21,8 @@
     "remote_process_access": false,
     "security_product_tampering": false,
     "kernel_memory_modification": false,
-    "credential_access": false
+    "credential_access": false,
+    "embedded_amsi_test_signature": false
   },
   "detection_objective": "correlate behavioral and provider-integrity signals without assuming a specific bypass implementation"
 }
