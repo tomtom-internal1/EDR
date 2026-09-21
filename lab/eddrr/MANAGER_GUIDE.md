@@ -18,6 +18,8 @@ A successful engineer should be able to demonstrate:
 
 ## Ten demonstrations
 
+The PoCs are implemented in C under `lab/eddrr/c_pocs/`. Engineers should show the C source, compiled generator output, the EDDRR miss, and the corrected result.
+
 1. WMI remote execution
 2. WinRM remote execution
 3. SMB administrative-share activity
