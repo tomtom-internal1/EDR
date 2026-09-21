@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.20)
+project(02_threadpool_timer C)
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+add_executable(02_threadpool_timer main.c)
+if(MSVC)
+ target_compile_options(02_threadpool_timer PRIVATE /W4 /WX /O2)
+endif()
