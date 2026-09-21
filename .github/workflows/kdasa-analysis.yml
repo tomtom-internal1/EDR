@@ -1,0 +1,24 @@
+name: KDASA analysis
+
+on:
+  push:
+    paths:
+      - 'tools/kdasa_analyze.py'
+      - 'tools/sample_kdasa.jsonl'
+  pull_request:
+    paths:
+      - 'tools/kdasa_analyze.py'
+      - 'tools/sample_kdasa.jsonl'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Analyze sample telemetry
+        run: python tools/kdasa_analyze.py tools/sample_kdasa.jsonl -o summary.json
+      - name: Validate JSON
+        run: python -c "import json; json.load(open('summary.json', encoding='utf-8'))"
