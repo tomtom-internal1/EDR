@@ -11,6 +11,7 @@ function Build-Exe {
     $libs = @()
     if ($Name -eq "p06_etw_private_session") { $libs += "advapi32.lib" }
     if ($Name -eq "p07_amsi_multipath") { $libs += "amsi.lib" }
+    if ($Name -eq "p11_amsi_integrity") { $libs += "amsi.lib"; $libs += "bcrypt.lib" }
     if ($Name -eq "p09_socket_groundtruth") { $libs += "Ws2_32.lib"; $libs += "Iphlpapi.lib" }
 
     Write-Host "[build] $Name"
@@ -37,3 +38,5 @@ if (!(Test-Path $baseBin)) {
 Copy-Item $baseBin $fixture -Force
 
 Write-Host "[build] complete"
+
+Build-Exe "p11_amsi_integrity"
