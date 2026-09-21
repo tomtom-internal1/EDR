@@ -8,15 +8,23 @@ Completed:
 - Running-driver inventory
 - Offline PE metadata and mitigation extraction
 - Evidence-based review scoring
-- Windows/Ubuntu CI for the analysis components
+- Static HTML reporting
+- Benign process-event stress workload
+- ETW-vs-callback correlation metrics
+- SQLite evidence store and query helper
+- Advisory correlation with provenance
+- Vulnerable-driver blocklist hash comparison
+- Unified driver assessment bundle
+- Windows/.NET and Python CI for analysis components
 
 Planned:
 
 - PE import/export inventory
-- Authenticode chain details in the report
-- Curated CVE/advisory ingestion with provenance
-- SQLite evidence store
-- HTML report generation
-- ETW-vs-callback correlation metrics
+- Detailed Authenticode chain reporting
+- NVD/CVE normalization with CPE candidate matching
+- Multi-run trend analysis
+- Better event ordering and loss diagnostics
+- HTML report sections driven by the unified assessment bundle
+- GUI investigation timeline
 - Controlled telemetry-integrity experiments
-- GUI for investigation and timeline visualization
+- Driver security linting using documented best practices
