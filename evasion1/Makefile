@@ -39,3 +39,7 @@ p10_kernel_sensor_integrity: p10_kernel_sensor_integrity.c poc_common.h
 
 clean:
 	-del /Q *.exe 2>NUL
+
+
+p11_amsi_validation: p11_amsi_validation.c poc_common.h
+	$(CC) $(CFLAGS) -o $@.exe $< $(LDLIBS) -lamsi
