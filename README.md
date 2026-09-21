@@ -58,6 +58,7 @@ Added heuristic static checks for IOCTL surfaces, user-buffer handling, memory m
 ## EDDRR training
 
 - [Remote-technique training set](lab/eddrr/REMOTE_TECHNIQUES.md)
+- [C-language PoCs](lab/eddrr/c_pocs/README.md)
 - [Manager guide](lab/eddrr/MANAGER_GUIDE.md)
 
 - [Training lab](lab/eddrr/README.md)
