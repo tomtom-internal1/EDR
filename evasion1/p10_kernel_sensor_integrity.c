@@ -2,6 +2,7 @@
 #include <windows.h>
 #include <tlhelp32.h>
 #include <stdio.h>
+#include <wchar.h>
 #include "poc_common.h"
 
 static unsigned long count_threads_for_pid(DWORD pid)
