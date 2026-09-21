@@ -1,0 +1,18 @@
+{
+  "name": "evasion1",
+  "version": "1.0.0",
+  "scope": "defensive Windows telemetry research",
+  "operational_payloads": false,
+  "techniques": [
+    {"id":"P01","name":"syscall-path visibility","oracle":"API-hook visibility is not the only visibility source"},
+    {"id":"P02","name":"parent-process context","oracle":"reported and observed lineage must be consistent"},
+    {"id":"P03","name":"APC execution","oracle":"correlate APC queueing with callback execution"},
+    {"id":"P04","name":"timer callback execution","oracle":"correlate callback registration with later execution"},
+    {"id":"P05","name":"memory protection lifecycle","oracle":"model allocation, write, protection change and release as one sequence"},
+    {"id":"P06","name":"DLL load context","oracle":"validate module path and provenance"},
+    {"id":"P07","name":"ETW telemetry degradation","oracle":"unexplained sequence gaps are integrity findings"},
+    {"id":"P08","name":"IPv6 network telemetry","oracle":"normalize AF_INET and AF_INET6"},
+    {"id":"P09","name":"local IPC","oracle":"correlate named-pipe and registry communication locally"},
+    {"id":"P10","name":"kernel sensor integrity","oracle":"distinguish notification loss from ordinary inactivity"}
+  ]
+}
