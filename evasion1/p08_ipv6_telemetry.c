@@ -6,24 +6,32 @@
 #pragma comment(lib, "Ws2_32.lib")
 #include "poc_common.h"
 
-typedef struct {
-    SOCKET listener;
-} SERVER_CONTEXT;
-
-static DWORD WINAPI server_thread(LPVOID param)
+static int make_listener(SOCKET *out, unsigned short *port)
 {
-    SERVER_CONTEXT *ctx = (SERVER_CONTEXT *)param;
-    struct sockaddr_in6 peer;
-    int peer_len = sizeof(peer);
-    SOCKET client = accept(ctx->listener, (struct sockaddr *)&peer, &peer_len);
-    if (client == INVALID_SOCKET) return 1;
+    SOCKET s = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
+    if (s == INVALID_SOCKET) return 0;
 
-    char buffer[64] = {0};
-    recv(client, buffer, sizeof(buffer) - 1, 0);
-    send(client, "EDDRR-IPV6-OK", 14, 0);
+    struct sockaddr_in6 a;
+    ZeroMemory(&a, sizeof(a));
+    a.sin6_family = AF_INET6;
+    a.sin6_addr = in6addr_loopback;
+    a.sin6_port = 0;
 
-    closesocket(client);
-    return 0;
+    if (bind(s, (struct sockaddr *)&a, sizeof(a)) == SOCKET_ERROR ||
+        listen(s, 1) == SOCKET_ERROR) {
+        closesocket(s);
+        return 0;
+    }
+
+    int len = sizeof(a);
+    if (getsockname(s, (struct sockaddr *)&a, &len) == SOCKET_ERROR) {
+        closesocket(s);
+        return 0;
+    }
+
+    *out = s;
+    *port = ntohs(a.sin6_port);
+    return 1;
 }
 
 int main(void)
@@ -35,82 +43,74 @@ int main(void)
         return 1;
     }
 
-    SOCKET listener = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
-    if (listener == INVALID_SOCKET) {
-        poc_emit_error(poc, 1, "IPV6_NETWORK_TELEMETRY", "socket(AF_INET6)");
+    SOCKET listener;
+    unsigned short port;
+    if (!make_listener(&listener, &port)) {
+        poc_emit_error(poc, 1, "IPV6_NETWORK_TELEMETRY", "IPv6_listener");
         WSACleanup();
         return 1;
     }
 
-    struct sockaddr_in6 addr;
-    ZeroMemory(&addr, sizeof(addr));
-    addr.sin6_family = AF_INET6;
-    addr.sin6_addr = in6addr_loopback;
-    addr.sin6_port = 0;
-
-    if (bind(listener, (struct sockaddr *)&addr, sizeof(addr)) == SOCKET_ERROR ||
-        listen(listener, 1) == SOCKET_ERROR) {
-        poc_emit_error(poc, 1, "IPV6_NETWORK_TELEMETRY", "bind/listen");
-        closesocket(listener);
-        WSACleanup();
-        return 1;
-    }
-
-    int addr_len = sizeof(addr);
-    getsockname(listener, (struct sockaddr *)&addr, &addr_len);
-
-    char details[320];
+    char details[384];
     snprintf(details, sizeof(details),
-             "{\"address_family\":\"AF_INET6\",\"destination\":\"::1\","
-             "\"port\":%u,\"scope\":\"loopback\",\"remote_network\":false}",
-             (unsigned)ntohs(addr.sin6_port));
+             "{\"family\":\"AF_INET6\",\"local_address\":\"::1\",\"port\":%u,"
+             "\"scope\":\"loopback\",\"remote_network\":false}",
+             (unsigned)port);
     poc_emit(poc, 1, "Listen", "IPV6_NETWORK_TELEMETRY", details);
-
-    SERVER_CONTEXT ctx = { listener };
-    HANDLE thread = CreateThread(NULL, 0, server_thread, &ctx, 0, NULL);
-    if (!thread) {
-        poc_emit_error(poc, 2, "IPV6_NETWORK_TELEMETRY", "CreateThread");
-        closesocket(listener);
-        WSACleanup();
-        return 1;
-    }
 
     SOCKET client = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
     if (client == INVALID_SOCKET) {
         poc_emit_error(poc, 2, "IPV6_NETWORK_TELEMETRY", "client_socket");
-        WaitForSingleObject(thread, 2000);
-        CloseHandle(thread);
         closesocket(listener);
         WSACleanup();
         return 1;
     }
 
-    if (connect(client, (struct sockaddr *)&addr, sizeof(addr)) == SOCKET_ERROR) {
+    struct sockaddr_in6 dest;
+    ZeroMemory(&dest, sizeof(dest));
+    dest.sin6_family = AF_INET6;
+    dest.sin6_addr = in6addr_loopback;
+    dest.sin6_port = htons(port);
+
+    if (connect(client, (struct sockaddr *)&dest, sizeof(dest)) == SOCKET_ERROR) {
         poc_emit_error(poc, 2, "IPV6_NETWORK_TELEMETRY", "connect(::1)");
         closesocket(client);
-        WaitForSingleObject(thread, 2000);
-        CloseHandle(thread);
         closesocket(listener);
         WSACleanup();
         return 1;
     }
 
-    send(client, "EDDRR-LOCAL-IPV6", 16, 0);
-    char reply[32] = {0};
-    recv(client, reply, sizeof(reply) - 1, 0);
+    SOCKET accepted = accept(listener, NULL, NULL);
+    if (accepted == INVALID_SOCKET) {
+        poc_emit_error(poc, 3, "IPV6_NETWORK_TELEMETRY", "accept");
+        closesocket(client);
+        closesocket(listener);
+        WSACleanup();
+        return 1;
+    }
+
+    const char marker[] = "EDDRR-IPV6-LOCAL";
+    send(client, marker, (int)sizeof(marker), 0);
+
+    char reply[64] = {0};
+    recv(accepted, reply, sizeof(reply) - 1, 0);
 
     poc_emit(poc, 2, "Connection", "IPV6_NETWORK_TELEMETRY",
-             "{\"address_family\":\"AF_INET6\",\"destination\":\"::1\","
-             "\"protocol\":\"TCP\",\"purpose\":\"local telemetry fixture\"}");
+             "{\"family\":\"AF_INET6\",\"source\":\"::1\",\"destination\":\"::1\","
+             "\"protocol\":\"TCP\",\"local_only\":true,\"remote_address\":false}");
 
+    closesocket(accepted);
     closesocket(client);
-    WaitForSingleObject(thread, 2000);
-    CloseHandle(thread);
     closesocket(listener);
     WSACleanup();
 
     poc_emit(poc, 3, "ConnectionClose", "IPV6_NETWORK_TELEMETRY",
-             "{\"loopback_only\":true,\"remote_connection\":false}");
+             "{\"family\":\"AF_INET6\",\"lifecycle_complete\":true}");
+
+    poc_emit(poc, 4, "DetectionOracle", "IPV6_NETWORK_TELEMETRY",
+             "{\"expected_detection\":\"address_family_normalization\","
+             "\"rule\":\"AF_INET6_and_AF_INET_share_endpoint_schema\","
+             "\"this_flow_expected_benign\":true}");
 
     return 0;
 }
