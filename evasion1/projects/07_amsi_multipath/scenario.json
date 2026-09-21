@@ -2,36 +2,31 @@
   "id": "A07",
   "title": "AMSI multi-path validation",
   "standalone": true,
-  "source": "main.c",
+  "source": [
+    "main.c",
+    "simulator.c"
+  ],
   "platform": "Windows 10+",
   "linked_libraries": [
     "amsi.lib",
     "bcrypt.lib",
     "version.lib"
   ],
+  "execution_tiers": {
+    "native": "real Windows AMSI integration",
+    "simulator": "deterministic telemetry-only regression control"
+  },
   "runtime_inputs": {
-    "external_file": "optional local validation input; not stored in repository",
-    "repeat_count": "1..20"
+    "external_file": "optional local native validation input; not stored in repository",
+    "repeat_count": "1..100 for simulator, 1..20 for native harness"
   },
-  "telemetry": "evasion1-jsonl-v2",
-  "measurements": [
-    "amsi_module_version",
-    "input_sha256",
-    "AmsiScanString_session",
-    "AmsiScanString_no_session",
-    "AmsiScanBuffer_session",
-    "AmsiScanBuffer_no_session",
-    "HRESULT",
-    "AMSI_RESULT",
-    "AmsiResultIsMalware",
-    "scan_latency_us",
-    "repeat_stability",
-    "AmsiNotifyOperation"
+  "simulator_scenarios": [
+    "stable",
+    "result-flip",
+    "hresult-failure",
+    "cross-path-drift"
   ],
-  "detection_oracle": {
-    "stable": "all scan HRESULTs succeeded and no measured path changed result across repetitions",
-    "anomaly": "one or more HRESULT failures or repeated-result changes"
-  },
+  "telemetry": "evasion1-jsonl-v2",
   "safety": {
     "local_only": true,
     "payload_execution": false,
@@ -39,7 +34,9 @@
     "security_product_tampering": false,
     "kernel_memory_modification": false,
     "credential_access": false,
-    "embedded_amsi_test_signature": false
+    "native_amsi_patch": false,
+    "embedded_amsi_test_signature": false,
+    "simulation_distinguished_from_native": true
   },
-  "detection_objective": "measure AMSI path consistency and generate high-quality telemetry for correlation and anomaly investigation"
+  "detection_objective": "measure native AMSI path consistency and provide deterministic positive/negative controls for EDR correlation"
 }
