@@ -47,6 +47,12 @@ Added a local XML blocklist SHA-256 matcher that clearly distinguishes an exact 
 ### Milestone 10 — Unified assessment
 Added a JSON assessment bundle that combines inventory, PE, advisory, blocklist, and scoring artifacts.
 
+### Milestone 11 — Before/after comparison
+Added longitudinal comparison of driver identity, signature, PE mitigations, blocklist state, and review-priority evidence.
+
+### Milestone 12 — Driver source security linting
+Added heuristic static checks for IOCTL surfaces, user-buffer handling, memory mapping, unsafe string/copy routines, named devices, and debug output.
+
 ## Documentation
 
 - [KDASA overview](docs/kdasa/README.md)
@@ -71,5 +77,10 @@ Added a JSON assessment bundle that combines inventory, PE, advisory, blocklist,
 - tools/kdasa_db.py — SQLite evidence store
 - tools/kdasa_query.py — evidence queries
 - tools/kdasa_report.py — static HTML reporting
+- tools/kdasa_advisory_match.py — advisory matching
+- tools/kdasa_blocklist.py — blocklist hash comparison
+- tools/kdasa_assess.py — unified assessment bundle
+- tools/kdasa_compare.py — before/after comparison
+- tools/kdasa_driver_lint.py — driver source security linting
 
 All live kernel work should be performed in a disposable Windows research VM.
