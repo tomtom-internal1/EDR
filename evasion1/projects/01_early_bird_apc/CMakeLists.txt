@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.20)
+project(01_early_bird_apc C)
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+add_executable(01_early_bird_apc main.c)
+if(MSVC)
+ target_compile_options(01_early_bird_apc PRIVATE /W4 /WX /O2)
+endif()
