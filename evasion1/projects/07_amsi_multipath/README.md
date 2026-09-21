@@ -1,6 +1,20 @@
 # A07 — AMSI multi-path validation
 
-Standalone Windows research project for high-fidelity AMSI measurement and EDR telemetry.
+Standalone Windows research project for high-fidelity AMSI measurement and EDR correlation.
+
+## Two execution tiers
+
+**Native integration**
+- Calls the documented AMSI interfaces on Windows.
+- Measures real provider behavior, HRESULTs, AMSI results, session behavior, and latency.
+
+**Deterministic simulator**
+- Does not call AMSI.
+- Does not touch process memory or security products.
+- Generates controlled telemetry anomalies so EDR logic can be regression-tested even when Windows security controls block the native research source.
+- Every simulated event is explicitly marked \`"simulation":true\`.
+
+This separation is deliberate: simulated observations are never presented as real AMSI observations.
 
 ## Build
 
@@ -15,31 +29,71 @@ cmake -S . -B build -A x64
 cmake --build build --config Release
 \`\`\`
 
-## Run
+The build produces:
 
-Baseline benign run:
+\`\`\`text
+bin\\07_amsi_multipath.exe
+bin\\07_amsi_multipath_sim.exe
+\`\`\`
+
+## Native run
 
 \`\`\`powershell
-.\\run.ps1
+.\\run.ps1 -Mode Native
 \`\`\`
 
 Repeat the observation matrix five times:
 
 \`\`\`powershell
-.\\run.ps1 -Repeat 5
+.\\run.ps1 -Mode Native -Repeat 5
 \`\`\`
 
 Use an operator-supplied local validation input:
 
 \`\`\`powershell
-.\\run.ps1 -InputFile .\\validation-input.txt -Repeat 3
+.\\run.ps1 -Mode Native -InputFile .\\validation-input.txt -Repeat 3
 \`\`\`
 
-The repository intentionally does not embed a vendor AMSI test signature. A validation input remains outside source control and is supplied at runtime.
+The repository does not embed a vendor AMSI test signature. Validation input stays outside source control.
+
+## Deterministic regression tests
+
+Baseline:
+
+\`\`\`powershell
+.\\run.ps1 -Mode Simulator -Scenario stable -Repeat 3
+\`\`\`
+
+Force result instability:
+
+\`\`\`powershell
+.\\run.ps1 -Mode Simulator -Scenario result-flip -Repeat 3
+\`\`\`
+
+Force an HRESULT failure:
+
+\`\`\`powershell
+.\\run.ps1 -Mode Simulator -Scenario hresult-failure -Repeat 3
+\`\`\`
+
+Force cross-path drift:
+
+\`\`\`powershell
+.\\run.ps1 -Mode Simulator -Scenario cross-path-drift -Repeat 3
+\`\`\`
+
+Expected simulator oracle:
+
+\`\`\`text
+stable             -> STABLE
+result-flip        -> ANOMALY
+hresult-failure    -> ANOMALY
+cross-path-drift   -> ANOMALY
+\`\`\`
 
 ## Measurement matrix
 
-Every repetition measures four documented AMSI paths:
+The native harness repeats:
 
 \`\`\`text
 AmsiScanString  + session
@@ -48,42 +102,21 @@ AmsiScanBuffer  + session
 AmsiScanBuffer  + no session
 \`\`\`
 
-The same benign string is used for the two string-path measurements. The buffer path uses either the built-in benign byte sequence or the exact operator-supplied local file.
+For each scan it records HRESULT, AMSI_RESULT, AmsiResultIsMalware, input size, input SHA-256, latency, and session state. It also records AMSI DLL version context and AmsiNotifyOperation.
 
-For each scan the harness records:
-
-- HRESULT and success state.
-- AMSI_RESULT.
-- AmsiResultIsMalware interpretation.
-- Input size.
-- Input SHA-256.
-- High-resolution latency.
-- Session/no-session mode.
-- Repetition number through the event sequence.
-
-It also records the AMSI DLL version context and the result of AmsiNotifyOperation.
-
-Microsoft documents AmsiScanBuffer as the API for scanning a buffer, notes that the optional session correlates multiple scan requests, and recommends AmsiResultIsMalware when interpreting whether content should be blocked. citeturn862137search0turn862137search1
+Microsoft documents AmsiScanBuffer for buffer scanning, the optional session for correlating scan requests, and AmsiResultIsMalware for interpreting results. citeturn862137search0turn862137search1
 
 ## Detection oracle
 
-A07 deliberately separates **scan detection** from **harness health**.
+**STABLE**
+- all native scan HRESULTs succeeded
+- no measured path changed result across repetitions
 
-A sample returning DETECTED is a successful AMSI observation.
+**ANOMALY**
+- any native scan HRESULT failed
+- or repeated results changed
 
-The oracle is:
-
-\`\`\`text
-STABLE
-  all scan calls succeeded
-  AND no path changed result across repetitions
-
-ANOMALY
-  any scan HRESULT failed
-  OR a path changed result across repetitions
-\`\`\`
-
-An ANOMALY is an investigation signal. It is not proof of a specific AMSI bypass.
+An ANOMALY is an investigation signal, not proof of a specific bypass.
 
 ## Telemetry
 
@@ -91,11 +124,7 @@ Output:
 
 \`artifacts\\\\events.jsonl\`
 
-The event stream is JSONL and can be correlated with EDDRR/KDASA telemetry using PID/TID, sequence numbers, and timestamps.
-
-## Platform
-
-Windows 10+
+Native events contain real PID/TID values. Simulator events use \`pid=0\`, \`tid=0\`, and \`simulation=true\` so downstream correlation can distinguish synthetic control traffic.
 
 ## Safety
 
