@@ -38,4 +38,10 @@ foreach ($name in $programs) {
     }
 }
 
+Write-Host "[run] validating consolidated outputs"
+python.exe (Join-Path $Root "validate.py")
+if ($LASTEXITCODE -ne 0) {
+    throw "Evasion1 validator failed."
+}
+
 Write-Host "[run] all PoCs completed and JSON validated."
