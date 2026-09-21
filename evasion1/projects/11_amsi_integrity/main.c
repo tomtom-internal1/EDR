@@ -100,6 +100,10 @@ int main(void)
         return 1;
     }
 
+    MEMORY_BASIC_INFORMATION live_mbi;
+    ZeroMemory(&live_mbi, sizeof(live_mbi));
+    VirtualQuery((const void *)live_scan, &live_mbi, sizeof(live_mbi));
+
     const SIZE_T compare_len = 64;
     BYTE live_bytes[64];
     BYTE disk_bytes[64];
