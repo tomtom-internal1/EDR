@@ -6,9 +6,34 @@
 
 static const wchar_t *PIPE_NAME = L"\\.\pipe\EDDRR-Evasion1-P09";
 
-int main(void)
+static int child_mode(void)
 {
+    HANDLE pipe = CreateFileW(PIPE_NAME, GENERIC_READ | GENERIC_WRITE,
+                              0, NULL, OPEN_EXISTING, 0, NULL);
+    if (pipe == INVALID_HANDLE_VALUE) {
+        poc_emit_error("P09_LOCAL_IPC", 1, "LOCAL_IPC", "child_OpenPipe");
+        return 1;
+    }
+
+    const char message[] = "EDDRR-P09-LOCAL-IPC";
+    DWORD written = 0;
+    BOOL ok = WriteFile(pipe, message, (DWORD)sizeof(message), &written, NULL);
+
+    poc_emit("P09_LOCAL_IPC", 4, "ChildPipeWrite", "LOCAL_IPC",
+             ok ? "{\"role\":\"child\",\"transport\":\"named_pipe\",\"bytes_written\":20}"
+                : "{\"role\":\"child\",\"transport\":\"named_pipe\",\"write\":\"failure\"}");
+
+    CloseHandle(pipe);
+    return ok ? 0 : 1;
+}
+
+int main(int argc, char **argv)
+{
+    if (argc > 1 && strcmp(argv[1], "--child") == 0)
+        return child_mode();
+
     const char *poc = "P09_LOCAL_IPC";
+    unsigned long seq = 1;
 
     HANDLE pipe = CreateNamedPipeW(
         PIPE_NAME,
@@ -17,36 +42,74 @@ int main(void)
         1, 512, 512, 0, NULL);
 
     if (pipe == INVALID_HANDLE_VALUE) {
-        poc_emit_error(poc, 1, "LOCAL_IPC", "CreateNamedPipeW");
+        poc_emit_error(poc, seq++, "LOCAL_IPC", "CreateNamedPipeW");
         return 1;
     }
 
-    poc_emit(poc, 1, "NamedPipeCreate", "LOCAL_IPC",
-             "{\"object\":\"\\\\.\\pipe\\EDDRR-Evasion1-P09\",\"scope\":\"local\",\"network_event_expected\":false}");
+    poc_emit(poc, seq++, "NamedPipeCreate", "LOCAL_IPC",
+             "{\"object\":\"\\\\.\\pipe\\EDDRR-Evasion1-P09\","
+             "\"scope\":\"same_host\",\"remote_network_event_expected\":false}");
 
-    HANDLE client = CreateFileW(PIPE_NAME, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
-    if (client == INVALID_HANDLE_VALUE) {
-        poc_emit_error(poc, 2, "LOCAL_IPC", "CreateFileW(pipe)");
+    WCHAR self[MAX_PATH];
+    if (!GetModuleFileNameW(NULL, self, MAX_PATH)) {
+        poc_emit_error(poc, seq++, "LOCAL_IPC", "GetModuleFileNameW");
         CloseHandle(pipe);
         return 1;
     }
 
-    const char message[] = "EDDRR-P09-LOCAL-IPC";
-    DWORD written = 0;
-    WriteFile(client, message, (DWORD)sizeof(message), &written, NULL);
+    WCHAR command[2 * MAX_PATH];
+    _snwprintf_s(command, sizeof(command) / sizeof(command[0]), _TRUNCATE,
+                 L"\"%s\" --child", self);
+
+    STARTUPINFOW si;
+    PROCESS_INFORMATION pi;
+    ZeroMemory(&si, sizeof(si));
+    ZeroMemory(&pi, sizeof(pi));
+    si.cb = sizeof(si);
+
+    if (!CreateProcessW(NULL, command, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
+        poc_emit_error(poc, seq++, "LOCAL_IPC", "CreateProcessW");
+        CloseHandle(pipe);
+        return 1;
+    }
+
+    poc_emit(poc, seq++, "ChildProcessCreate", "LOCAL_IPC",
+             "{\"transport\":\"named_pipe\",\"process_relationship\":\"same_host_child\",\"execution\":\"benign\"}");
 
     BOOL connected = ConnectNamedPipe(pipe, NULL);
-    DWORD connect_error = connected ? ERROR_SUCCESS : GetLastError();
-    UNREFERENCED_PARAMETER(connect_error);
+    DWORD connect_status = connected ? ERROR_SUCCESS : GetLastError();
+
+    if (!connected && connect_status != ERROR_PIPE_CONNECTED) {
+        SetLastError(connect_status);
+        poc_emit_error(poc, seq++, "LOCAL_IPC", "ConnectNamedPipe");
+        TerminateProcess(pi.hProcess, 1);
+        CloseHandle(pi.hThread);
+        CloseHandle(pi.hProcess);
+        CloseHandle(pipe);
+        return 1;
+    }
 
     char received[64] = {0};
     DWORD read = 0;
-    ReadFile(pipe, received, sizeof(received) - 1, &read, NULL);
+    BOOL read_ok = ReadFile(pipe, received, sizeof(received) - 1, &read, NULL);
 
-    poc_emit(poc, 2, "NamedPipeTransfer", "LOCAL_IPC",
-             "{\"transport\":\"named_pipe\",\"scope\":\"same_host\",\"payload\":\"benign_marker\"}");
+    char details[384];
+    snprintf(details, sizeof(details),
+             "{\"server_pid\":%lu,\"client_pid\":%lu,"
+             "\"transport\":\"named_pipe\",\"bytes_read\":%lu,"
+             "\"message_valid\":%s,\"network_socket\":false}",
+             (unsigned long)GetCurrentProcessId(),
+             (unsigned long)pi.dwProcessId,
+             (unsigned long)read,
+             (read_ok && strcmp(received, "EDDRR-P09-LOCAL-IPC") == 0) ? "true" : "false");
+    poc_emit(poc, seq++, "PipeTransfer", "LOCAL_IPC", details);
 
-    CloseHandle(client);
+    WaitForSingleObject(pi.hProcess, 3000);
+    DWORD child_exit = 1;
+    GetExitCodeProcess(pi.hProcess, &child_exit);
+
+    CloseHandle(pi.hThread);
+    CloseHandle(pi.hProcess);
     DisconnectNamedPipe(pipe);
     CloseHandle(pipe);
 
@@ -56,18 +119,26 @@ int main(void)
                               0, NULL, 0, KEY_READ | KEY_WRITE, NULL,
                               &key, NULL);
     if (rc != ERROR_SUCCESS) {
-        poc_emit_error(poc, 3, "LOCAL_IPC", "RegCreateKeyExW");
+        poc_emit_error(poc, seq++, "LOCAL_IPC", "RegCreateKeyExW");
         return 1;
     }
 
     const wchar_t value[] = L"EDDRR-P09-REGISTRY-IPC";
-    RegSetValueExW(key, L"Message", 0, REG_SZ,
-                   (const BYTE *)value, (DWORD)((wcslen(value) + 1) * sizeof(wchar_t)));
+    rc = RegSetValueExW(key, L"Message", 0, REG_SZ,
+                        (const BYTE *)value,
+                        (DWORD)((wcslen(value) + 1) * sizeof(wchar_t)));
 
-    wchar_t read_value[64] = {0};
     DWORD type = 0;
-    DWORD cb = sizeof(read_value);
-    RegQueryValueExW(key, L"Message", NULL, &type, (BYTE *)read_value, &cb);
+    DWORD cb = 0;
+    RegQueryValueExW(key, L"Message", NULL, &type, NULL, &cb);
+
+    char reg_detail[320];
+    snprintf(reg_detail, sizeof(reg_detail),
+             "{\"operation\":\"registry_roundtrip\",\"scope\":\"HKCU\","
+             "\"write_result\":%ld,\"value_type\":%lu,\"value_bytes\":%lu}",
+             (long)rc, (unsigned long)type, (unsigned long)cb);
+    poc_emit(poc, seq++, "RegistryIpc", "LOCAL_IPC", reg_detail);
+
     RegCloseKey(key);
 
     HKEY cleanup = NULL;
@@ -84,8 +155,16 @@ int main(void)
         RegCloseKey(parent);
     }
 
-    poc_emit(poc, 3, "RegistryIpc", "LOCAL_IPC",
-             "{\"operation\":\"HKCU_value_roundtrip\",\"scope\":\"same_host\",\"cleanup\":true}");
+    snprintf(reg_detail, sizeof(reg_detail),
+             "{\"cleanup\":true,\"child_exit_code\":%lu,"
+             "\"named_pipe_and_registry\":\"same_host_ipc_paths\"}",
+             (unsigned long)child_exit);
+    poc_emit(poc, seq++, "IpcLifecycleEnd", "LOCAL_IPC", reg_detail);
+
+    poc_emit(poc, seq++, "DetectionOracle", "LOCAL_IPC",
+             "{\"expected_detection\":\"cross_process_local_communication\","
+             "\"correlate\":[\"ChildProcessCreate\",\"PipeTransfer\",\"RegistryIpc\"],"
+             "\"network_visibility_not_required\":true}");
 
     return 0;
 }
