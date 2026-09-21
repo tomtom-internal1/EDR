@@ -92,12 +92,19 @@ int main(void)
     const char marker[] = "EDDRR-IPV6-LOCAL";
     send(client, marker, (int)sizeof(marker), 0);
 
-    char reply[64] = {0};
-    recv(accepted, reply, sizeof(reply) - 1, 0);
+    char received[64] = {0};
+    recv(accepted, received, sizeof(received) - 1, 0);
+
+    const char reply[] = "EDDRR-IPV6-ACK";
+    send(accepted, reply, (int)sizeof(reply), 0);
+
+    char client_reply[64] = {0};
+    recv(client, client_reply, sizeof(client_reply) - 1, 0);
 
     poc_emit(poc, 2, "Connection", "IPV6_NETWORK_TELEMETRY",
              "{\"family\":\"AF_INET6\",\"source\":\"::1\",\"destination\":\"::1\","
-             "\"protocol\":\"TCP\",\"local_only\":true,\"remote_address\":false}");
+             "\"protocol\":\"TCP\",\"local_only\":true,\"remote_address\":false,"
+             "\"application_data\":\"benign_marker_roundtrip\"}");
 
     closesocket(accepted);
     closesocket(client);
@@ -110,7 +117,7 @@ int main(void)
     poc_emit(poc, 4, "DetectionOracle", "IPV6_NETWORK_TELEMETRY",
              "{\"expected_detection\":\"address_family_normalization\","
              "\"rule\":\"AF_INET6_and_AF_INET_share_endpoint_schema\","
-             "\"this_flow_expected_benign\":true}");
+             "\"loopback_exception\":\"classify_as_local\",\"this_flow_expected_benign\":true}");
 
     return 0;
 }
