@@ -29,6 +29,9 @@ A PowerShell collector inventories running drivers, versions, publishers, paths,
 ### Milestone 4 — Offline PE analysis and scoring
 The analyzer extracts architecture, sections, PE security-directory presence, ASLR/NX/CFG-related flags, writable+executable sections, hashes, and review-priority evidence.
 
+### Milestone 5 — Static reporting and workload experiments
+Added self-contained HTML reporting plus a benign process-stress workload for repeatable telemetry coverage measurements.
+
 ## Documentation
 
 - [KDASA overview](docs/kdasa/README.md)
@@ -40,6 +43,7 @@ The analyzer extracts architecture, sections, PE security-directory presence, AS
 - [Milestone 03](docs/kdasa/milestone-03.md)
 - [Milestone 04](docs/kdasa/milestone-04.md)
 - [Roadmap](docs/kdasa/roadmap.md)
+- [EDR evasion research map](docs/edr-evasion-research-map.md)
 
 ## Tools
 
