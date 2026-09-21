@@ -17,6 +17,10 @@ These are **simulations**, not attack instructions.
 | R09 | Remote transfer | File extension is treated as transfer identity |
 | R10 | Web traffic / C2 simulation | One User-Agent string is treated as a reliable identity |
 
+## C-language PoCs
+
+Each scenario also has a standalone C11 PoC under `c_pocs/`. The binaries emit synthetic JSON telemetry and intentionally make no network connections.
+
 ## Engineer exercise
 
 For every case:
