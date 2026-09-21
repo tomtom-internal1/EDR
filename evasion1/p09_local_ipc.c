@@ -1,6 +1,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <stdio.h>
+#include <string.h>
 #include <wchar.h>
 #include "poc_common.h"
 
@@ -145,14 +146,14 @@ int main(int argc, char **argv)
     if (RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\EDDRR\\Evasion1\\P09",
                       0, KEY_WRITE, &cleanup) == ERROR_SUCCESS) {
         RegDeleteValueW(cleanup, L"Message");
-        RegCloseKey(cleanup);
+        RegCloseHandle(cleanup);
     }
 
     HKEY parent = NULL;
     if (RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\EDDRR\\Evasion1",
                       0, KEY_WRITE, &parent) == ERROR_SUCCESS) {
         RegDeleteKeyW(parent, L"P09");
-        RegCloseKey(parent);
+        RegCloseHandle(parent);
     }
 
     snprintf(reg_detail, sizeof(reg_detail),
@@ -165,6 +166,5 @@ int main(int argc, char **argv)
              "{\"expected_detection\":\"cross_process_local_communication\","
              "\"correlate\":[\"ChildProcessCreate\",\"PipeTransfer\",\"RegistryIpc\"],"
              "\"network_visibility_not_required\":true}");
-
     return 0;
 }
