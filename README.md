@@ -32,6 +32,12 @@ The analyzer extracts architecture, sections, PE security-directory presence, AS
 ### Milestone 5 — Static reporting and workload experiments
 Added self-contained HTML reporting plus a benign process-stress workload for repeatable telemetry coverage measurements.
 
+### Milestone 6 — Cross-source correlation
+Added an offline correlator that matches events by identity plus timestamp tolerance and reports matched/unmatched coverage.
+
+### Milestone 7 — Evidence store
+Added a local SQLite backend and query tool for retaining normalized events and original JSON payloads across repeated lab runs.
+
 ## Documentation
 
 - [KDASA overview](docs/kdasa/README.md)
@@ -52,5 +58,9 @@ Added self-contained HTML reporting plus a benign process-stress workload for re
 - tools/kdasa_pe.py — offline PE property extraction
 - tools/kdasa_score.py — evidence-based triage scoring
 - tools/kdasa_analyze.py — JSONL telemetry analysis
+- tools/kdasa_correlate.py — cross-source correlation
+- tools/kdasa_db.py — SQLite evidence store
+- tools/kdasa_query.py — evidence queries
+- tools/kdasa_report.py — static HTML reporting
 
 All live kernel work should be performed in a disposable Windows research VM.
