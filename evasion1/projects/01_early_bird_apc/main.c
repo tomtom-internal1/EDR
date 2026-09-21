@@ -80,6 +80,10 @@ int main(void)
              (unsigned long)ctx.worker_tid);
     adv_emit(id, 5, "CorrelationResult", "EARLY_BIRD_APC_LIFECYCLE", d);
 
+    adv_emit(id, 6, "DetectionOracle", "EARLY_BIRD_APC_LIFECYCLE",
+             "{\"expected_detection\":\"APC_queued_before_resume_and_delivered_on_target_TID\","
+             "\"correlate\":[\"ApcQueuedBeforeResume\",\"ApcCallback\",\"CorrelationResult\"]}");
+
     CloseHandle(t);
     CloseHandle(ctx.ready);
     CloseHandle(ctx.done);
