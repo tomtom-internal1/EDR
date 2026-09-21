@@ -15,7 +15,8 @@ $programs = @(
     "p07_etw_degradation",
     "p08_ipv6_telemetry",
     "p09_local_ipc",
-    "p10_kernel_sensor_integrity"
+    "p10_kernel_sensor_integrity",
+    "p11_amsi_validation"
 )
 
 foreach ($name in $programs) {
