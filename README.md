@@ -6,6 +6,8 @@ A defensive security research repository focused on Windows endpoint telemetry, 
 
 - **EDDRR Training EDR** — intentionally flawed local endpoint-detection simulator with 10 engineered false-negative cases and reproducible PoCs.
 
+- **Evasion1 Advanced** — 11 real Windows behavioral research PoCs covering APCs, threadpool callbacks, VEH/hardware breakpoints, native thread provenance, ETW session integrity, AMSI validation/integrity, SEC_IMAGE provenance, and IPv4/IPv6 socket ground truth.
+
 - **KDASA — Kernel Driver Attack Surface Analyzer**
   - Read-only kernel telemetry
   - Process/thread/image notifications
@@ -57,6 +59,8 @@ Added heuristic static checks for IOCTL surfaces, user-buffer handling, memory m
 
 ## EDDRR training
 
+- [Evasion1 Advanced](evasion1/advanced/README.md)
+- [Evasion1 Advanced skill mapping](evasion1/advanced/SKILL_MAPPING.md)
 - [Remote-technique training set](lab/eddrr/REMOTE_TECHNIQUES.md)
 - [C-language PoCs](lab/eddrr/c_pocs/README.md)
 - [Manager guide](lab/eddrr/MANAGER_GUIDE.md)
