@@ -2,6 +2,7 @@
 #include <windows.h>
 #include <evntprov.h>
 #include <stdio.h>
+#include <string.h>
 #include "poc_common.h"
 #pragma comment(lib, "advapi32.lib")
 
@@ -42,17 +43,29 @@ int main(void)
              "{\"provider\":\"EDDRR-LAB-TEST\",\"provider_guid\":\"2A7E8D4B-2E1D-45CC-9A15-7C3B4F216D11\","
              "\"telemetry_control\":\"external\",\"disable_attempt\":false}");
 
-    write_sequence(100, "continuous");
+    if (!write_sequence(100, "continuous")) {
+        poc_emit_error(poc, seq++, "ETW_TELEMETRY_INTEGRITY", "EventWrite-100");
+        EventUnregister(g_reg);
+        return 1;
+    }
     poc_emit(poc, seq++, "EtwWrite", "ETW_TELEMETRY_INTEGRITY",
              "{\"provider_sequence\":100,\"state\":\"continuous\",\"actual_etw_write\":true}");
 
-    /* The gap is intentional test data, not provider/session tampering. */
-    write_sequence(103, "fixture_gap_after_100");
+    /* Deliberate data-level gap. The ETW provider remains enabled. */
+    if (!write_sequence(103, "fixture_gap_after_100")) {
+        poc_emit_error(poc, seq++, "ETW_TELEMETRY_INTEGRITY", "EventWrite-103");
+        EventUnregister(g_reg);
+        return 1;
+    }
     poc_emit(poc, seq++, "EtwWrite", "ETW_TELEMETRY_INTEGRITY",
              "{\"provider_sequence\":103,\"state\":\"fixture_gap_after_100\",\"skipped_sequences\":2,"
-             "\"actual_etw_write\":true}");
+             "\"actual_etw_write\":true,\"provider_disabled\":false}");
 
-    write_sequence(104, "resumed");
+    if (!write_sequence(104, "resumed")) {
+        poc_emit_error(poc, seq++, "ETW_TELEMETRY_INTEGRITY", "EventWrite-104");
+        EventUnregister(g_reg);
+        return 1;
+    }
     poc_emit(poc, seq++, "EtwWrite", "ETW_TELEMETRY_INTEGRITY",
              "{\"provider_sequence\":104,\"state\":\"resumed\",\"actual_etw_write\":true}");
 
@@ -60,7 +73,8 @@ int main(void)
 
     poc_emit(poc, seq++, "DetectionOracle", "ETW_TELEMETRY_INTEGRITY",
              "{\"expected_detection\":\"unexpected_sequence_discontinuity\","
-             "\"gap\":[101,102],\"do_not_attempt_provider_disabling\":true}");
+             "\"gap\":[101,102],\"provider_was_disabled\":false,"
+             "\"detector_action\":\"raise_telemetry_integrity_signal\"}");
 
     return 0;
 }
