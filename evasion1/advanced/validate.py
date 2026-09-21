@@ -17,6 +17,7 @@ EXPECTED = {
     "p08_sec_image_mapping": {"A08_SEC_IMAGE_MAPPING", "ImageSectionMapped", "ImageInspection", "DetectionOracle"},
     "p09_socket_groundtruth": {"A09_SOCKET_GROUNDTRUTH", "SocketGroundTruth", "DetectionOracle"},
     "p10_wait_callback": {"A10_WAIT_CALLBACK", "WaitRegistration", "WaitCallback", "CallbackCorrelation", "DetectionOracle"},
+    "p11_amsi_integrity": {"A11_AMSI_INTEGRITY", "AmsiCodeIntegrity", "DetectionOracle"},
 }
 
 def main() -> int:
