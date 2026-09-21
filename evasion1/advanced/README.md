@@ -38,3 +38,10 @@ All scenarios are local and benign. They do not perform remote process access, p
 
 A04 observes a hardware breakpoint on a function inside the same executable and clears it after the first hit.
 A08 maps the supplied test DLL with SEC_IMAGE and does not execute from the mapping.
+
+
+## Standalone projects
+
+The canonical compile/test layout is now under `../projects/`. Every advanced scenario is isolated into its own directory with local source, local telemetry header, MSVC build script, CMake project, run/validation script, and scenario metadata.
+
+Start here: `evasion1/projects/README.md`.
