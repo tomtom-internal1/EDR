@@ -1,0 +1,69 @@
+{
+  "name": "evasion1-advanced",
+  "version": "2.0.0",
+  "scope": "advanced defensive Windows telemetry research",
+  "scenarios": [
+    [
+      "A01",
+      "early-bird-style APC lifecycle",
+      "CreateThread(CREATE_SUSPENDED)+QueueUserAPC+SleepEx"
+    ],
+    [
+      "A02",
+      "threadpool timer execution",
+      "CreateThreadpoolTimer"
+    ],
+    [
+      "A03",
+      "callback-based execution",
+      "EnumWindows"
+    ],
+    [
+      "A04",
+      "hardware-breakpoint self-instrumentation",
+      "VEH+DR0/DR7"
+    ],
+    [
+      "A05",
+      "native thread introspection",
+      "NtQueryInformationThread"
+    ],
+    [
+      "A06",
+      "ETW private-session integrity",
+      "StartTraceW+ControlTraceW"
+    ],
+    [
+      "A07",
+      "AMSI multi-path validation",
+      "AmsiScanString+AmsiScanBuffer+AmsiResultIsMalware"
+    ],
+    [
+      "A08",
+      "SEC_IMAGE provenance",
+      "CreateFileMappingW(SEC_IMAGE)+MapViewOfFile"
+    ],
+    [
+      "A09",
+      "socket PID ground truth",
+      "Winsock+GetExtendedTcpTable"
+    ],
+    [
+      "A10",
+      "wait callback execution",
+      "RegisterWaitForSingleObject"
+    ],
+    [
+      "A11",
+      "AMSI code integrity",
+      "live-versus-disk-backed AmsiScanBuffer SHA-256"
+    ]
+  ],
+  "safety": {
+    "remote_process_access": false,
+    "security_product_tampering": false,
+    "kernel_memory_modification": false,
+    "credential_access": false,
+    "payload_execution": false
+  }
+}
