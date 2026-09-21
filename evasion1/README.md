@@ -18,6 +18,7 @@ The exercises are benign and non-operational. They exercise legitimate Windows A
 | P08 | IPv6 network telemetry | WFP/network | Are address families normalized consistently? |
 | P09 | local IPC | named pipes + registry | Can local process communication be detected without network events? |
 | P10 | kernel sensor integrity | kernel telemetry | Can notification loss be distinguished from normal inactivity? |
+| P11 | AMSI validation/integrity | AMSI + Defender provider | Can an unexpected AMSI-clean result be surfaced as an integrity anomaly? |
 
 ## Build
 
@@ -49,5 +50,6 @@ P07 and P10 simulate telemetry loss or integrity changes instead of disabling Wi
 P08 connects only to the local IPv6 loopback.
 P09 uses only local named-pipe and HKCU registry IPC and cleans up.
 P10 performs no driver loading or kernel memory modification.
+P11 invokes the documented AMSI API and uses a Microsoft-published validation sample; it does not patch AMSI or disable an antimalware provider.
 
 The suite is intended for a disposable Windows research VM and defensive detection engineering.
