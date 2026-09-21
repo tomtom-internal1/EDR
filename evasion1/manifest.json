@@ -1,18 +1,67 @@
 {
   "name": "evasion1",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "scope": "defensive Windows telemetry research",
   "operational_payloads": false,
+  "platform_notes": {
+    "amsi": "Windows 10 and later",
+    "windows_11": "recommended for version-matrix testing; not a hard AMSI API requirement"
+  },
   "techniques": [
-    {"id":"P01","name":"syscall-path visibility","oracle":"API-hook visibility is not the only visibility source"},
-    {"id":"P02","name":"parent-process context","oracle":"reported and observed lineage must be consistent"},
-    {"id":"P03","name":"APC execution","oracle":"correlate APC queueing with callback execution"},
-    {"id":"P04","name":"timer callback execution","oracle":"correlate callback registration with later execution"},
-    {"id":"P05","name":"memory protection lifecycle","oracle":"model allocation, write, protection change and release as one sequence"},
-    {"id":"P06","name":"DLL load context","oracle":"validate module path and provenance"},
-    {"id":"P07","name":"ETW telemetry degradation","oracle":"unexplained sequence gaps are integrity findings"},
-    {"id":"P08","name":"IPv6 network telemetry","oracle":"normalize AF_INET and AF_INET6"},
-    {"id":"P09","name":"local IPC","oracle":"correlate named-pipe and registry communication locally"},
-    {"id":"P10","name":"kernel sensor integrity","oracle":"distinguish notification loss from ordinary inactivity"}
+    {
+      "id": "P01",
+      "name": "syscall-path visibility",
+      "oracle": "API-hook visibility is not the only visibility source"
+    },
+    {
+      "id": "P02",
+      "name": "parent-process context",
+      "oracle": "reconcile parent identity using independent sources"
+    },
+    {
+      "id": "P03",
+      "name": "APC execution",
+      "oracle": "correlate APC queueing with callback execution"
+    },
+    {
+      "id": "P04",
+      "name": "timer callback execution",
+      "oracle": "correlate callback registration with later execution"
+    },
+    {
+      "id": "P05",
+      "name": "section memory protection lifecycle",
+      "oracle": "model writable-to-executable transition as a sequence"
+    },
+    {
+      "id": "P06",
+      "name": "DLL load context",
+      "oracle": "validate module path and provenance"
+    },
+    {
+      "id": "P07",
+      "name": "ETW telemetry integrity",
+      "oracle": "sequence gaps become integrity findings"
+    },
+    {
+      "id": "P08",
+      "name": "IPv6 telemetry",
+      "oracle": "normalize AF_INET6 and AF_INET"
+    },
+    {
+      "id": "P09",
+      "name": "local IPC",
+      "oracle": "correlate named-pipe and registry communication locally"
+    },
+    {
+      "id": "P10",
+      "name": "kernel sensor integrity",
+      "oracle": "reconcile source-specific gaps against independent ground truth"
+    },
+    {
+      "id": "P11",
+      "name": "AMSI validation/integrity",
+      "oracle": "unexpectedly clean validation content becomes an investigation signal"
+    }
   ]
 }
